@@ -1,0 +1,19 @@
+server:
+  port: 8082
+  context-path: /springboot-vote
+
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@localhost:1521:XE
+    username: hr
+    password: hrr
+  mvc:
+    view:
+      prefix: /
+      suffix: .jsp
+
+
+mybatis:
+  mapper-locations: mapper/*Mapper.xml
+  type-aliases-package: com/baizhi/votesys/entity

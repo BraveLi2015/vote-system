@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.baizhi.votesys.dao.SubjectDao">
+    <resultMap id="SubjectMap" type="Subject">
+        <result property="id" column="id"/>
+        <result property="type" column="type"/>
+        <result property="title" column="title"/>
+        <collection property="optionList" ofType="Option">
+            <result property="optionId" column="optionId"/>
+            <result property="optionContent" column="optionContent"/>
+        </collection>
+    </resultMap>
+    <insert id="insertSubject">
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            select seq_vote_subject.nextval from dual
+        </selectKey>
+        insert into VOTE_SUBJECT (VS_ID, VS_TITLE, VS_TYPE) values (#{id},#{title},#{type})
+    </insert>
+
+    <insert id="insertOption">
+        insert into VOTE_OPTION (VO_ID, VS_ID, VO_OPTION, VO_ORDER)
+        select SEQ_VOTE_OPTION.nextval,t1.* from
+        <foreach collection="list" open="(" separator="union" close=")t1" item="option">
+            select #{option.subjectId},#{option.optionContent},#{option.optionOrder} from dual
+        </foreach>
+    </insert>
+
+    <update id="multiDelete">
+        update VOTE_SUBJECT set STATUS = 1 where VS_ID in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getOptionsBySubjectId" resultMap="SubjectMap">
+        select t1.VS_ID     id,
+               t1.VS_TYPE   type,
+               t1.VS_TITLE  title,
+               t2.VO_ID     optionId,
+               t2.VO_OPTION optionContent
+        from (select * from VOTE_SUBJECT where VS_ID = #{subjectId}) t1
+                 inner join VOTE_OPTION t2 on t1.VS_ID = t2.VS_ID
+        where t2.STATUS = 0
+        order by t2.VO_ORDER desc, t2.VO_ID
+
+    </select>
+
+    <insert id="insertItem">
+        insert into VOTE_ITEM
+        select SEQ_VOTE_ITEM.nextval item_id,t.* from
+        <foreach collection="optionIds" item="optionId" open="(" separator="union" close=")t">
+            select #{userId},#{subjectId},#{optionId} from dual
+        </foreach>
+    </insert>
+
+    <update id="updateSubjectType">
+        update VOTE_SUBJECT
+        set VS_TYPE = #{subjectType}
+        where VS_ID = #{subjectId}
+    </update>
+
+    <update id="updateOptionsType">
+        update VOTE_OPTION set STATUS = 1 where VO_ID in
+        <foreach collection="array" open="(" separator="," close=")" item="optionId">
+            #{optionId}
+        </foreach>
+    </update>
+</mapper>

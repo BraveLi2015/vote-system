@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.baizhi.votesys.dao.ListDtoDao">
+    <select id="getByPage" resultType="ListDto">
+        <!--select t5.VS_ID subjectId,
+               t5.VS_TITLE subjectTitle,
+               t5.optionCount optionCount,
+               t5.votePersonCount votePersonCount
+            from (
+                select t4.*,ROWNUM rm
+                from (
+                    select t3.VS_ID,
+                           t3.VS_TITLE,
+                           t3.optionCount,
+                           count(t4.VU_USER_ID) votePersonCount
+                    from
+                        (select t1.VS_ID,
+                                t1.VS_TITLE,
+                                count(t2.VO_OPTION) optionCount
+                          from VOTE_SUBJECT t1 inner join VOTE_OPTION t2 on t1.VS_ID = t2.VS_ID
+                          <where>
+                            <if test="listDto != null and listDto.subjectTitle != null">
+                                t1.VS_TITLE like '%' || #{listDto.subjectTitle} || '%'
+                            </if>
+                          </where>
+                        group by t1.vs_id, vs_title
+                    ) t3 left join VOTE_ITEM t4 on t3.VS_ID = t4.VS_ID
+                    group by t3.VS_ID,t3.VS_TITLE,t3.optionCount
+                    order by t3.VS_ID
+                ) t4
+             order by t4.VS_ID
+            ) t5
+        where t5.rm between #{start} and #{end}-->
+
+        <!--将查询的结果存到视图中,从视图中查询-->
+        select *
+        from (
+        select t2.*,ROWNUM rm
+        from (
+        select t.VS_ID subjectId,
+        VS_TITLE subjectTitle,
+        optionCount optionCount,
+        votePersonCount votePersonCount
+        from voteListView t
+        <where>
+            <if test="listDto != null and listDto.subjectTitle != null">
+                t1.VS_TITLE like '%' || #{listDto.subjectTitle} || '%'
+            </if>
+        </where>
+        order by t.VS_ID
+        ) t2
+        ) t3
+        where t3.rm between #{start} and #{end}
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(1) from VOTE_SUBJECT where STATUS = 0
+        <if test="listDto != null and listDto.subjectTitle != null">
+            and VS_TITLE like '%' || #{listDto.subjectTitle} || '%'
+        </if>
+    </select>
+</mapper>
